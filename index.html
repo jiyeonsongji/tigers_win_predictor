@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KIA TIGERS · 승률 분석기 v3</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Bebas+Neue&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --kia-red: #EA0029;
+            --kia-black: #0A0A0A;
+            --kia-cream: #F5F1EC;
+            --kia-white: #FFFFFF;
+            --kia-gray: #8A8A8A;
+            --kia-green: #00C853;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--kia-cream);
+            font-family: 'Gowun Batang', serif;
+            color: var(--kia-black);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 32px 20px;
+        }
+
+        /* ── HEADER ── */
+        .header {
+            background: var(--kia-black);
+            color: #fff;
+            padding: 28px 32px;
+            border-left: 8px solid var(--kia-red);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .header-left h1 {
+            font-family: 'Bebas Neue';
+            font-size: 38px;
+            letter-spacing: 2px;
+        }
+
+        .header-left p {
+            font-size: 12px;
+            opacity: 0.6;
+            margin-top: 4px;
+            font-family: 'JetBrains Mono';
+        }
+
+        .live-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            color: var(--kia-green);
+            font-family: 'JetBrains Mono';
+            white-space: nowrap;
+            border: 1px solid var(--kia-green);
+            padding: 6px 12px;
+        }
+
+        .dot {
+            width: 7px;
+            height: 7px;
+            background: var(--kia-green);
+            border-radius: 50%;
+            animation: blink 1.2s infinite;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: 0.2
+            }
+        }
+
+        /* ── CARD ── */
+        .card {
+            background: var(--kia-white);
+            padding: 28px;
+            margin-bottom: 18px;
+            border: 1px solid #e8e4df;
+        }
+
+        .card-title {
+            font-family: 'Bebas Neue';
+            font-size: 16px;
+            letter-spacing: 2px;
+            border-bottom: 2px solid var(--kia-red);
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        @media (max-width: 620px) {
+            .grid-3 {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .grid-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        label {
+            font-size: 11px;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+            letter-spacing: 1px;
+            opacity: 0.7;
+        }
+
+        select,
+        input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            background: #fafaf9;
+            font-family: inherit;
+            font-size: 14px;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23333' fill='none' stroke-width='1.5'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+        }
+
+        /* ── 팀 현황 배지 ── */
+        .form-row {
+            margin-bottom: 14px;
+        }
+
+        .team-status {
+            background: #0A0A0A;
+            color: #fff;
+            padding: 14px 16px;
+            margin-top: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            font-family: 'JetBrains Mono';
+            font-size: 12px;
+        }
+
+        .team-status .record {
+            color: var(--kia-green);
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .team-status .rank {
+            color: var(--kia-red);
+            font-size: 20px;
+            font-family: 'Bebas Neue';
+            letter-spacing: 1px;
+        }
+
+        /* ── ANALYZE BUTTON ── */
+        .analyze-btn {
+            width: 100%;
+            background: var(--kia-black);
+            color: #fff;
+            border: none;
+            padding: 16px;
+            margin-top: 20px;
+            font-family: 'Bebas Neue';
+            font-size: 22px;
+            letter-spacing: 3px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .analyze-btn:hover {
+            background: var(--kia-red);
+        }
+
+        /* ── RESULTS ── */
+        #result {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px)
+            }
+
+            to {
+                opacity: 1;
+                transform: none
+            }
+        }
+
+        /* 승률 게이지 */
+        .gauge-card {
+            background: var(--kia-black);
+            color: #fff;
+            padding: 36px 32px;
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            flex-wrap: wrap;
+        }
+
+        .gauge-wrap {
+            position: relative;
+            width: 160px;
+            height: 160px;
+            flex-shrink: 0;
+        }
+
+        .gauge-wrap svg {
+            transform: rotate(-90deg);
+        }
+
+        .gauge-bg {
+            fill: none;
+            stroke: #2a2a2a;
+            stroke-width: 12;
+        }
+
+        .gauge-fill {
+            fill: none;
+            stroke: var(--kia-red);
+            stroke-width: 12;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1s ease;
+        }
+
+        .gauge-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            pointer-events: none;
+        }
+
+        .gauge-pct {
+            font-family: 'Bebas Neue';
+            font-size: 44px;
+            color: var(--kia-red);
+            line-height: 1;
+        }
+
+        .gauge-label {
+            font-size: 10px;
+            font-family: 'JetBrains Mono';
+            opacity: 0.5;
+        }
+
+        .gauge-info {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .verdict {
+            font-family: 'Bebas Neue';
+            font-size: 30px;
+            letter-spacing: 2px;
+            color: var(--kia-red);
+            margin-bottom: 8px;
+        }
+
+        .verdict-sub {
+            font-size: 13px;
+            opacity: 0.7;
+            font-family: 'JetBrains Mono';
+        }
+
+        /* 요소별 기여도 */
+        .factor-list {
+            list-style: none;
+            margin-top: 16px;
+        }
+
+        .factor-item {
+            margin-bottom: 12px;
+        }
+
+        .factor-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            margin-bottom: 4px;
+            font-family: 'JetBrains Mono';
+        }
+
+        .factor-bar-bg {
+            height: 6px;
+            background: #2a2a2a;
+            border-radius: 3px;
+        }
+
+        .factor-bar {
+            height: 6px;
+            border-radius: 3px;
+            transition: width 0.8s ease;
+        }
+
+        .bar-pos {
+            background: var(--kia-green);
+        }
+
+        .bar-neg {
+            background: var(--kia-red);
+        }
+
+        .bar-neu {
+            background: #666;
+        }
+
+        /* 상세 분석 그리드 */
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        @media (max-width: 540px) {
+            .detail-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .detail-box {
+            background: #fff;
+            padding: 20px;
+            border: 1px solid #e8e4df;
+        }
+
+        .detail-box h3 {
+            font-family: 'Bebas Neue';
+            font-size: 15px;
+            letter-spacing: 1px;
+            border-bottom: 2px solid var(--kia-red);
+            display: inline-block;
+            margin-bottom: 14px;
+        }
+
+        .detail-box ul {
+            list-style: none;
+            font-size: 13px;
+        }
+
+        .detail-box ul li {
+            padding: 6px 0;
+            border-bottom: 1px solid #f0ede9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .tag {
+            font-size: 10px;
+            padding: 2px 7px;
+            border-radius: 2px;
+            font-family: 'JetBrains Mono';
+            font-weight: bold;
+        }
+
+        .tag-hot {
+            background: #fff3cd;
+            color: #b8860b;
+        }
+
+        .tag-cold {
+            background: #fde8e8;
+            color: var(--kia-red);
+        }
+
+        .tag-norm {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        /* 투수 매치업 */
+        .matchup-card {
+            background: #fff;
+            padding: 22px;
+            border: 1px solid #e8e4df;
+            margin-top: 16px;
+        }
+
+        .matchup-card h3 {
+            font-family: 'Bebas Neue';
+            font-size: 15px;
+            letter-spacing: 1px;
+            margin-bottom: 16px;
+        }
+
+        .matchup-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13px;
+        }
+
+        .pitcher-name {
+            font-weight: bold;
+            flex: 1;
+        }
+
+        .pitcher-stat {
+            font-family: 'JetBrains Mono';
+            font-size: 12px;
+            color: var(--kia-gray);
+        }
+
+        .vs-divider {
+            font-family: 'Bebas Neue';
+            font-size: 20px;
+            color: var(--kia-red);
+        }
+
+        /* 최종 분석 텍스트 */
+        .analysis-text {
+            background: #fff;
+            padding: 22px 24px;
+            border-left: 5px solid var(--kia-red);
+            margin-top: 16px;
+            font-size: 14px;
+            line-height: 1.9;
+        }
+
+        .analysis-text strong {
+            color: var(--kia-red);
+        }
+
+        /* 업데이트 시각 */
+        .updated {
+            font-size: 11px;
+            font-family: 'JetBrains Mono';
+            color: var(--kia-gray);
+            text-align: right;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <!-- HEADER -->
+        <div class="header">
+            <div class="header-left">
+                <h1>KIA TIGERS <span style="color:var(--kia-red)">WIN-PROB</span> AI</h1>
+                <p>선발 매치업 · 타선 페이스 · 구장 · 상대 전적 종합 분석</p>
+            </div>
+            <div class="live-badge"><span class="dot"></span> DATA ACTIVE</div>
+        </div>
+
+        <!-- INPUT FORM -->
+        <div class="card">
+            <div class="card-title">경기 정보 입력</div>
+            <div class="grid-3">
+                <div class="form-row">
+                    <label>상대 팀</label>
+                    <select id="opponent" onchange="updateOppPitchers()">
+                        <option value="">선택</option>
+                        <option value="두산">두산 베어스</option>
+                        <option value="한화">한화 이글스</option>
+                        <option value="롯데">롯데 자이언츠</option>
+                        <option value="삼성">삼성 라이온즈</option>
+                        <option value="LG">LG 트윈스</option>
+                        <option value="SSG">SSG 랜더스</option>
+                        <option value="NC">NC 다이노스</option>
+                        <option value="kt">kt wiz</option>
+                        <option value="키움">키움 히어로즈</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label>경기장</label>
+                    <select id="stadium">
+                        <option value="광주">광주 (홈)</option>
+                        <option value="잠실">잠실</option>
+                        <option value="문학">문학</option>
+                        <option value="사직">사직</option>
+                        <option value="대구">대구</option>
+                        <option value="대전">대전</option>
+                        <option value="창원">창원</option>
+                        <option value="수원">수원</option>
+                        <option value="고척">고척</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label>오늘 날씨</label>
+                    <select id="weather">
+                        <option value="맑음">☀️ 맑음</option>
+                        <option value="흐림">☁️ 흐림</option>
+                        <option value="비">🌧 비 / 습함</option>
+                        <option value="강풍">💨 강풍</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label>KIA 선발</label>
+                    <select id="kiaPitcher">
+                        <option value="네일">제임스 네일</option>
+                        <option value="올러">아담 올러</option>
+                        <option value="양현종">양현종</option>
+                        <option value="시라카와">시라카와 케이쇼 (아시아쿼터)</option>
+                        <option value="황동하">황동하</option>
+                        <option value="김태형">김태형</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label>상대 선발</label>
+                    <select id="oppPitcher"></select>
+                </div>
+            </div>
+            <!-- KIA 팀 현황 자동 반영 -->
+            <div class="team-status">
+                <span style="opacity:0.6">KIA 2026 시즌 현황 (자동 반영)</span>
+                <span class="record" id="teamRecord">33승 1무 27패</span>
+                <span class="rank" id="teamRank">4위 · 승률 .550</span>
+            </div>
+            <button class="analyze-btn" onclick="calculate()">▶ 분석 실행하기</button>
+        </div>
+
+        <!-- RESULT -->
+        <div id="result">
+
+            <!-- 승률 게이지 -->
+            <div class="gauge-card">
+                <div class="gauge-wrap">
+                    <svg width="160" height="160" viewBox="0 0 160 160">
+                        <circle class="gauge-bg" cx="80" cy="80" r="64" />
+                        <circle class="gauge-fill" id="gaugeFill" cx="80" cy="80" r="64" stroke-dasharray="402.12"
+                            stroke-dashoffset="402.12" />
+                    </svg>
+                    <div class="gauge-center">
+                        <div class="gauge-pct" id="gaugeNum">0%</div>
+                        <div class="gauge-label">WIN PROB</div>
+                    </div>
+                </div>
+                <div class="gauge-info">
+                    <div class="verdict" id="verdictText">—</div>
+                    <div class="verdict-sub" id="verdictSub">—</div>
+                    <ul class="factor-list" id="factorList"></ul>
+                </div>
+            </div>
+
+            <!-- 투수 매치업 -->
+            <div class="matchup-card">
+                <h3>🥎 선발 매치업</h3>
+                <div class="matchup-row">
+                    <div>
+                        <div class="pitcher-name" id="kiaPitcherName">—</div>
+                        <div class="pitcher-stat" id="kiaPitcherStat">—</div>
+                    </div>
+                    <div class="vs-divider">VS</div>
+                    <div style="text-align:right">
+                        <div class="pitcher-name" id="oppPitcherName">—</div>
+                        <div class="pitcher-stat" id="oppPitcherStat">—</div>
+                    </div>
+                </div>
+                <div style="margin-top:12px; font-size:13px; color:var(--kia-gray)" id="pitcherComment"></div>
+            </div>
+
+            <!-- 상세 분석 그리드 -->
+            <div class="detail-grid">
+                <div class="detail-box">
+                    <h3>핵심 타자 상태</h3>
+                    <ul id="playerList"></ul>
+                </div>
+                <div class="detail-box">
+                    <h3>승부처 포인트</h3>
+                    <ul id="pivotList"></ul>
+                </div>
+            </div>
+
+            <!-- 분석 텍스트 -->
+            <div class="analysis-text" id="analysisText"></div>
+            <div class="updated" id="updatedTime"></div>
+        </div>
+    </div>
+
+    <script>
+        // ──────────────────────────────────────────────────────────
+        // 💡 데이터 업데이트 가이드
+        // 이 JSON 블록을 GitHub에 별도 파일(kia_data.json)로 저장하고
+        // 하단 syncLiveData() 함수의 fetch URL을 바꾸면 자동 반영됩니다.
+        // ──────────────────────────────────────────────────────────
+
+        // ── 1. 선수 실시간 데이터 (2026-06-10 기준)
+        const LIVE_STATS = {
+            // [업데이트 필요 시 이 블록만 수정]
+            lastUpdated: '2026-06-10',
+            teamRecord: { wins: 33, draws: 1, losses: 27, rank: 4 },
+            players: [
+                { name: '김도영', pos: '3B', avg: 0.345, ops: 1.050, trend: 'HOT', note: '시즌 16홈런, 리그 홈런 단독 선두 / 최근 5경기 안타 폭발' },
+                { name: '나성범', pos: 'RF', avg: 0.232, ops: 0.660, trend: 'COLD', note: '6월 초 타이밍 불안정, 볼넷 비중 높음' },
+                { name: '아데를린', pos: '1B', avg: 0.275, ops: 0.870, trend: 'HOT', note: '시즌 10홈런 (6/4 만루포), 장타 페이스 유지' },
+                { name: '김선빈', pos: '2B', avg: 0.290, ops: 0.760, trend: 'NORM', note: '출루 안정, 2번 타자 역할 충실' },
+                { name: '김호령', pos: 'CF', avg: 0.255, ops: 0.710, trend: 'NORM', note: '희생플라이·번트 등 작전 신뢰도 높음' },
+            ],
+        };
+
+        // ── 2. KIA 선발 투수 데이터 (2026 시즌 기준)
+        const KIA_PITCHERS = {
+            '네일': { era: 2.98, whip: 1.05, score: 18, desc: 'ERA 2.98, 리그 상위권 에이스 / 제구 안정' },
+            '올러': { era: 3.85, whip: 1.18, score: 12, desc: 'ERA 3.85, 구위 안정적이나 장타 허용 주의' },
+            '양현종': { era: 4.20, whip: 1.25, score: 9, desc: '노장의 경험치, 피홈런 관리가 관건' },
+            '시라카와': { era: 3.40, whip: 1.10, score: 15, desc: '아시아쿼터 신입, 최대 152km / 6/4 데뷔 5이닝 무실점 / 제구·볼배합 강점' },
+            '황동하': { era: 4.10, whip: 1.28, score: 9, desc: '6/9 역투, 이닝이터 성장 중 / 장타 허용 주의' },
+            '김태형': { era: 5.10, whip: 1.45, score: 3, desc: '경험 쌓는 중, 구위 불안정' },
+        };
+
+        // ── 3. 상대팀 데이터
+        const OPPONENT_DATA = {
+            '두산': {
+                pitchers: {
+                    '곽빈': { era: 3.20, whip: 1.10, score: 16, desc: 'ERA 3.20, 안정적인 두산 에이스' },
+                    '잭 랙스': { era: 4.05, whip: 1.22, score: 10, desc: '외국인 선발, 변화구 다양' },
+                    '최민석': { era: 4.50, whip: 1.30, score: 8, desc: '중간 로테이션, 장타 취약' },
+                    '최승용': { era: 5.20, whip: 1.40, score: 4, desc: '불안정, KIA 타선에 취약 이력' },
+                    '플렉센': { era: 3.80, whip: 1.15, score: 13, desc: '경험 많은 외국인 에이스' },
+                },
+                rivalry: 7, winRate: 52, rank: 5, oppTrend: '3승2패'
+            },
+            '한화': {
+                pitchers: {
+                    '류현진': { era: 3.10, whip: 1.08, score: 17, desc: '복귀한 류현진, 제구 여전히 최상급' },
+                    '바리아': { era: 4.10, whip: 1.25, score: 9, desc: '파워 피처, 구위 강하나 제구 불안' },
+                    '와이스': { era: 3.70, whip: 1.12, score: 14, desc: '좌완 에이스급, KIA 좌타자 주의' },
+                    '김기중': { era: 4.80, whip: 1.38, score: 6, desc: '성장 중인 젊은 투수' },
+                    '황준서': { era: 5.30, whip: 1.48, score: 3, desc: '경험 부족, KIA에 불리' },
+                },
+                rivalry: 12, winRate: 55, rank: 3, oppTrend: '4승1패'
+            },
+            '롯데': {
+                pitchers: {
+                    '반즈': { era: 3.40, whip: 1.12, score: 15, desc: '구위 좋은 외국인 선발' },
+                    '윌커슨': { era: 4.20, whip: 1.28, score: 9, desc: '삼진 능력 OK, 홈런 허용 잦음' },
+                    '박세웅': { era: 3.90, whip: 1.18, score: 12, desc: '롯데 토종 에이스, 안정적' },
+                    '김진욱': { era: 5.00, whip: 1.42, score: 5, desc: '불안정한 구위' },
+                    '나균안': { era: 4.70, whip: 1.35, score: 7, desc: '좌완, 좌타자 우세' },
+                },
+                rivalry: 16, winRate: 58, rank: 7, oppTrend: '2승3패'
+            },
+            '삼성': {
+                pitchers: {
+                    '코너': { era: 3.60, whip: 1.14, score: 14, desc: '외국인 선발, 경험 풍부' },
+                    '레예스': { era: 4.30, whip: 1.28, score: 9, desc: '파워 피처, 볼넷 주의' },
+                    '원태인': { era: 3.15, whip: 1.06, score: 17, desc: '삼성 에이스, 정교한 제구' },
+                    '이승현': { era: 4.80, whip: 1.36, score: 6, desc: '좌완, 경험치 쌓는 중' },
+                    '황동재': { era: 4.60, whip: 1.33, score: 7, desc: '안정적이나 장타 취약' },
+                },
+                rivalry: 10, winRate: 48, rank: 4, oppTrend: '3승2패'
+            },
+            'LG': {
+                pitchers: {
+                    '엔스': { era: 3.30, whip: 1.08, score: 16, desc: 'LG 외국인 에이스, 구위 안정' },
+                    '임찬규': { era: 4.10, whip: 1.22, score: 10, desc: '중간 로테이션, 균형 잡힌 피처' },
+                    '최원태': { era: 3.80, whip: 1.16, score: 12, desc: '구위 안정, 변화구 날카로움' },
+                    '손주영': { era: 4.50, whip: 1.30, score: 8, desc: '좌완 젊은 투수' },
+                    '이상영': { era: 5.10, whip: 1.45, score: 4, desc: '경험 부족' },
+                },
+                rivalry: 8, winRate: 46, rank: 6, oppTrend: '2승3패'
+            },
+            'SSG': {
+                pitchers: {
+                    '김광현': { era: 2.90, whip: 1.02, score: 19, desc: '리그 최정상급 에이스, 극도로 주의' },
+                    '앤더슨': { era: 3.70, whip: 1.15, score: 13, desc: '경험 많은 외국인 투수' },
+                    '엘리아스': { era: 4.20, whip: 1.26, score: 9, desc: '평균적인 외국인 선발' },
+                    '오원석': { era: 4.60, whip: 1.33, score: 7, desc: '중간 로테이션' },
+                    '송영진': { era: 5.20, whip: 1.44, score: 3, desc: '구위 불안정' },
+                },
+                rivalry: 8, winRate: 44, rank: 8, oppTrend: '1승4패'
+            },
+            'NC': {
+                pitchers: {
+                    '하트': { era: 3.50, whip: 1.13, score: 14, desc: '경험 많은 외국인 에이스' },
+                    '카스타노': { era: 4.00, whip: 1.20, score: 11, desc: '안정적인 중간 로테이션' },
+                    '신민혁': { era: 3.90, whip: 1.18, score: 12, desc: '성장세 빠른 젊은 투수' },
+                    '김시훈': { era: 4.70, whip: 1.35, score: 7, desc: '제구력 아직 불안정' },
+                    '이재학': { era: 5.00, whip: 1.42, score: 5, desc: '경험은 있으나 구위 하락' },
+                },
+                rivalry: 11, winRate: 50, rank: 5, oppTrend: '3승2패'
+            },
+            'kt': {
+                pitchers: {
+                    '쿠에바스': { era: 3.45, whip: 1.11, score: 15, desc: '구위 좋은 외국인 에이스' },
+                    '벤자민': { era: 3.90, whip: 1.18, score: 12, desc: '구위 안정, 장타 허용 적음' },
+                    '고영표': { era: 4.00, whip: 1.20, score: 11, desc: 'kt 토종 에이스급' },
+                    '엄상백': { era: 4.80, whip: 1.37, score: 6, desc: '중간 로테이션, 불안정' },
+                    '조이현': { era: 5.30, whip: 1.48, score: 3, desc: '경험 부족' },
+                },
+                rivalry: 6, winRate: 42, rank: 9, oppTrend: '1승4패'
+            },
+            '키움': {
+                pitchers: {
+                    '후라도': { era: 3.20, whip: 1.08, score: 16, desc: '키움 외국인 에이스, 제구 최상급' },
+                    '헤이수스': { era: 3.80, whip: 1.16, score: 13, desc: '파워 피처, 삼진 능력 뛰어남' },
+                    '하영민': { era: 4.30, whip: 1.26, score: 9, desc: '중간 로테이션, 균형 잡힘' },
+                    '이종민': { era: 4.90, whip: 1.38, score: 6, desc: '젊은 투수, 성장 중' },
+                    '김윤하': { era: 5.20, whip: 1.44, score: 3, desc: '경험 부족' },
+                },
+                rivalry: 16, winRate: 60, rank: 2, oppTrend: '4승1패'
+            }
+        };
+
+        // ── 4. 구장 보정값
+        const STADIUM_FACTOR = {
+            '광주': { score: 6, note: '홈 이점 + 친숙한 마운드' },
+            '잠실': { score: -1, note: '중립적 구장, 타자 유리' },
+            '문학': { score: -2, note: '원정, 다소 불리' },
+            '사직': { score: -2, note: '원정, 타자 친화 구장' },
+            '대구': { score: -3, note: '원정, 타자 친화 → 투수 부담' },
+            '대전': { score: -3, note: '원정, 한화 홈 이점' },
+            '창원': { score: -2, note: '원정' },
+            '수원': { score: -2, note: '원정' },
+            '고척': { score: -2, note: '원정, 돔구장 특성 주의' },
+        };
+
+        // ── 5. 날씨 보정
+        const WEATHER_FACTOR = {
+            '맑음': { score: 0, note: '날씨 변수 없음' },
+            '흐림': { score: -1, note: '흐림, 약간 불리' },
+            '비': { score: -4, note: '비/습함 → 타격 부진, 수비 불안' },
+            '강풍': { score: -3, note: '강풍 → 투구 궤적 변화, 외야 수비 부담' },
+        };
+
+        // ── 6. 팀 성적 기반 흐름 점수 자동 계산
+        function getTeamStreakScore() {
+            const { wins, losses } = LIVE_STATS.teamRecord;
+            const winRate = wins / (wins + losses);
+            // 승률 .550 기준 중립, 최대 ±6점
+            return Math.round((winRate - 0.5) * 30);
+        }
+
+        function updateOppPitchers() {
+            const team = document.getElementById('opponent').value;
+            const select = document.getElementById('oppPitcher');
+            select.innerHTML = '';
+            if (!team || !OPPONENT_DATA[team]) return;
+            Object.keys(OPPONENT_DATA[team].pitchers).forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p; opt.textContent = p;
+                select.appendChild(opt);
+            });
+        }
+
+        function calculate() {
+            const opp = document.getElementById('opponent').value;
+            if (!opp) { alert('상대 팀을 선택하세요.'); return; }
+
+            const kiaP = document.getElementById('kiaPitcher').value;
+            const oppP = document.getElementById('oppPitcher').value;
+            const stadium = document.getElementById('stadium').value;
+            const weather = document.getElementById('weather').value;
+
+            const kiaPData = KIA_PITCHERS[kiaP];
+            const oppData = OPPONENT_DATA[opp];
+            const oppPData = oppData.pitchers[oppP];
+            const stadData = STADIUM_FACTOR[stadium];
+            const wxData = WEATHER_FACTOR[weather];
+
+            // ── 요소별 점수 계산 ──
+            // 1) 투수 우위 (KIA 선발 점수 - 상대 선발 점수, 최대 ±15)
+            const pitcherDiff = Math.max(-15, Math.min(15, kiaPData.score - oppPData.score));
+
+            // 2) 타선 상태
+            const hotCount = LIVE_STATS.players.filter(p => p.trend === 'HOT').length;
+            const coldCount = LIVE_STATS.players.filter(p => p.trend === 'COLD').length;
+            const lineupScore = (hotCount * 4) - (coldCount * 3);
+
+            // 3) 상대 전적 (rivalry: 높을수록 KIA에 유리)
+            const rivalryScore = Math.round((oppData.rivalry - 10) * 0.8);
+
+            // 4) 팀 성적 기반 흐름
+            const streakScore = getTeamStreakScore();
+
+            // 5) 구장 + 날씨
+            const envScore = stadData.score + wxData.score;
+
+            // ── 최종 승률 ──
+            const BASE = 50;
+            const total = BASE + pitcherDiff + lineupScore + rivalryScore + streakScore + envScore;
+            const finalRate = Math.min(95, Math.max(5, Math.round(total)));
+
+            // ── 결과 표시 ──
+            document.getElementById('result').style.display = 'block';
+            document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            // 게이지 애니메이션
+            const circumference = 402.12;
+            const offset = circumference * (1 - finalRate / 100);
+            const fill = document.getElementById('gaugeFill');
+            fill.style.strokeDashoffset = circumference;
+            fill.style.stroke = finalRate >= 60 ? 'var(--kia-green)' : (finalRate <= 40 ? 'var(--kia-red)' : '#f5a623');
+            setTimeout(() => { fill.style.strokeDashoffset = offset; }, 100);
+
+            // 숫자 카운트업
+            let curr = 0;
+            const timer = setInterval(() => {
+                curr = Math.min(curr + 2, finalRate);
+                document.getElementById('gaugeNum').textContent = curr + '%';
+                if (curr >= finalRate) clearInterval(timer);
+            }, 18);
+
+            // 판정
+            let verdict, verdictSub;
+            if (finalRate >= 70) { verdict = '🔴 강력 우세'; verdictSub = 'KIA 압도적 우위 예상'; }
+            else if (finalRate >= 58) { verdict = '🟠 KIA 우세'; verdictSub = '홈런 하나면 승부 결정'; }
+            else if (finalRate >= 45) { verdict = '⚡ 접전 예상'; verdictSub = '후반 불펜 싸움이 관건'; }
+            else if (finalRate >= 33) { verdict = '🔵 KIA 열세'; verdictSub = '역전 가능하나 쉽지 않음'; }
+            else { verdict = '⚫ 강력 열세'; verdictSub = '대형 이변이 필요한 매치업'; }
+
+            document.getElementById('verdictText').textContent = verdict;
+            document.getElementById('verdictSub').textContent = verdictSub;
+
+            // 요소별 기여도 바
+            const factors = [
+                { label: '선발 투수 우위', value: pitcherDiff, max: 15 },
+                { label: '타선 페이스', value: lineupScore, max: 12 },
+                { label: '상대 전적', value: rivalryScore, max: 8 },
+                { label: '최근 팀 흐름', value: streakScore, max: 5 },
+                { label: '구장 / 날씨', value: envScore, max: 6 },
+            ];
+            const factorHTML = factors.map(f => {
+                const pct = Math.abs(f.value) / f.max * 100;
+                const cls = f.value > 0 ? 'bar-pos' : (f.value < 0 ? 'bar-neg' : 'bar-neu');
+                const sign = f.value > 0 ? `+${f.value}` : `${f.value}`;
+                return `
+      <li class="factor-item">
+        <div class="factor-header"><span>${f.label}</span><span style="color:${f.value > 0 ? 'var(--kia-green)' : f.value < 0 ? 'var(--kia-red)' : '#666'}">${sign}</span></div>
+        <div class="factor-bar-bg"><div class="factor-bar ${cls}" style="width:${Math.min(100, pct)}%"></div></div>
+      </li>`;
+            }).join('');
+            document.getElementById('factorList').innerHTML = factorHTML;
+
+            // 투수 매치업
+            document.getElementById('kiaPitcherName').textContent = `🔴 ${kiaP}`;
+            document.getElementById('kiaPitcherStat').textContent = `ERA ${kiaPData.era} · WHIP ${kiaPData.whip}`;
+            document.getElementById('oppPitcherName').textContent = `${oppP} (${opp})`;
+            document.getElementById('oppPitcherStat').textContent = `ERA ${oppPData.era} · WHIP ${oppPData.whip}`;
+
+            const pitcherEdge = pitcherDiff > 3 ? 'KIA 선발 우위' : (pitcherDiff < -3 ? '상대 선발 우위' : '선발 균형');
+            document.getElementById('pitcherComment').textContent =
+                `${kiaPData.desc} / 상대: ${oppPData.desc} → ${pitcherEdge}`;
+
+            // 타자 상태
+            document.getElementById('playerList').innerHTML = LIVE_STATS.players.map(p => `
+    <li>
+      <span>${p.name} <small style="color:var(--kia-gray)">(${p.pos})</small></span>
+      <span class="tag tag-${p.trend.toLowerCase()}">${p.trend}</span>
+    </li>
+    <li style="background:#f9f7f5; font-size:12px; color:var(--kia-gray); border:none; padding:4px 0 8px">${p.note}</li>
+  `).join('');
+
+            // 승부처
+            const { wins: teamWins, losses: teamLosses, rank } = LIVE_STATS.teamRecord;
+            const winRatePct = Math.round(teamWins / (teamWins + teamLosses) * 1000) / 1000;
+            const pivots = [];
+            if (Math.abs(pitcherDiff) >= 5) pivots.push(`<li><strong>선발 매치업:</strong> ${kiaP}의 초반 3이닝 무실점이 열쇠</li>`);
+            pivots.push(`<li><strong>김도영:</strong> 시즌 16홈런 · 출루가 타선 전체를 깨움</li>`);
+            pivots.push(`<li><strong>팀 성적:</strong> ${teamWins}승${teamLosses}패 (${rank}위, 승률 .${String(winRatePct).split('.')[1]?.padEnd(3, '0')}) 반영</li>`);
+            pivots.push(`<li><strong>구장:</strong> ${stadData.note}</li>`);
+            if (weather !== '맑음') pivots.push(`<li><strong>날씨:</strong> ${wxData.note}</li>`);
+            document.getElementById('pivotList').innerHTML = pivots.join('');
+
+            // 분석 텍스트
+            const naSungBum = LIVE_STATS.players.find(p => p.name === '나성범') || {};
+            const kimDoYeong = LIVE_STATS.players.find(p => p.name === '김도영') || {};
+            const aderlin = LIVE_STATS.players.find(p => p.name === '아데를린') || {};
+            document.getElementById('analysisText').innerHTML = `
+    오늘 <strong>${stadium}</strong>에서의 매치업은 <strong>${kiaP} (ERA ${kiaPData.era})</strong> vs
+    <strong>${oppP} (ERA ${oppPData.era})</strong> 구도입니다.
+    ${pitcherDiff >= 5 ? `KIA 선발이 확연히 우세해 초반 흐름을 잡을 가능성이 높습니다.`
+                    : pitcherDiff <= -5 ? `상대 선발이 강해 타선의 초구 적극 공략이 필요합니다.`
+                        : `선발이 균형을 이루고 있어, 실수 없는 팀이 이기는 경기가 될 전망입니다.`}
+    타선에서는 <strong>김도영(시즌 16홈런, ${kimDoYeong.trend || 'HOT'})</strong>의 출루가 공격의 시발점이 되며,
+    <strong>아데를린(시즌 10홈런)</strong>의 장타가 뒷받침됩니다.
+    ${(naSungBum.trend === 'COLD') ? `<strong>나성범의 부진</strong>이 지속되고 있어 클러치 상황에서의 연결이 과제입니다.` : `<strong>나성범</strong>도 회복세로 중심 타선이 강화됩니다.`}
+    종합 분석: KIA 승률 <strong>${finalRate}%</strong>, <strong>${verdict}</strong> 예상.
+  `;
+
+            document.getElementById('updatedTime').textContent =
+                `분석 기준: ${new Date().toLocaleString('ko-KR')} · 데이터 최종 업데이트: 2026-06-10`;
+        }
+
+        // 초기화 — 팀 현황 배지 렌더 + 실시간 JSON sync
+        window.onload = async () => {
+            await syncLiveData();
+            const { wins, draws, losses, rank } = LIVE_STATS.teamRecord;
+            const wr = (wins / (wins + losses)).toFixed(3).replace('0.', '.');
+            document.getElementById('teamRecord').textContent = `${wins}승 ${draws}무 ${losses}패`;
+            document.getElementById('teamRank').textContent = `${rank}위 · 승률 ${wr}`;
+        };
+    </script>
+</body>
+
+</html>
